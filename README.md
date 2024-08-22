@@ -35,20 +35,33 @@ This guide explains how to set up Stacher on Windows to download the highest qua
 
 ### 4. Create the Batch Script `merge.bat`
 
-1. Open a text editor (e.g., Notepad) and paste the following code:
-
+1. **Open a text editor** (e.g., Notepad) and paste the following updated code to handle 1080p scaling:
+   
    ```batch
    @echo off
-   ffmpeg -i "%1" -i "%2" -c:v copy -c:a copy "%~dpn1.mp4"
+   ffmpeg -i "%1" -i "%2" -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2" -c:v libx264 -crf 23 -preset fast -c:a copy "%~dpn1.mp4"
    ```
 
-2. Save the file as `merge.bat` in a directory of your choice (e.g., `C:\scripts\merge.bat`).
+   This command includes several parameters and flags:
+   - `@echo off` disables the echoing of commands in the batch script, which helps in keeping the output clean.
+   - `ffmpeg` is the command-line tool used for processing the video and audio.
+   - `-i "%1" -i "%2"` specifies the input files where `%1` is the first input (video file) and `%2` is the second input (audio file).
+   - `-vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2"` applies video filters to scale the video to 1920x1080 pixels. It decreases the aspect ratio if necessary to fit the new dimensions and adds padding to maintain the aspect ratio without cropping any part of the video.
+   - `-c:v libx264` sets the video codec to libx264, which is a popular codec for encoding video files in the H.264/MPEG-4 AVC format.
+   - `-crf 23` sets the Constant Rate Factor to 23, balancing the quality and file size of the output video.
+   - `-preset fast` is an option that influences the time it takes to encode. A faster preset means faster encoding but possibly larger file size and reduced quality.
+   - `-c:a copy` copies the audio from the input file without re-encoding it.
+   - `"%~dpn1.mp4"` specifies the output file name, which is derived from the first input file but with an `.mp4` extension.
+
+2. **Save the file** as `merge.bat` in a directory of your choice (e.g., `C:\scripts\merge.bat`). 
+
+This script will ensure that your videos are processed to be 1080p in resolution while maintaining the integrity of the original aspect ratio and audio quality. The detailed breakdown of each command's purpose helps clarify the operations being performed during the merging process.
 
 ### 5. Set Up the Custom Post Processing Command in Stacher
 
 1. Open Stacher and go to **Settings**.
 2. Find the **Custom Post Processing Command** section.
-3. Paste the following command:
+3. Paste the following updated command:
 
    ```bash
    C:\scripts\merge.bat "{1}" "{2}"
@@ -60,11 +73,11 @@ This guide explains how to set up Stacher on Windows to download the highest qua
 
 1. Paste the YouTube URL into Stacher and start the download.
 2. Stacher will download the best video and audio files separately.
-3. After downloading, the `merge.bat` script will automatically merge the video and audio into a single MP4 file.
+3. After downloading, the `merge.bat` script will automatically merge the video and audio into a single MP4 file, now scaled to 1080p with the original aspect ratio preserved.
 
 ### 7. Verify the Output
 
-- Once the process completes, check the output directory (the same as your download directory) for the final MP4 file. It should have the same name as the original video and contain both the video and audio merged.
+- Once the process completes, check the output directory (the same as your download directory) for the final MP4 file. It should have the same name as the original video and contain both the video and audio merged, now at 1080p resolution.
 
 ## Troubleshooting
 
